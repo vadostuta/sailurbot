@@ -1,0 +1,10 @@
+name = "sailer"
+main = "index.js"
+compatibility_date = "2024-01-01"
+
+[triggers]
+crons = ["0 17 * * 6"]  # Every Friday at 5 PM; 6 because cloudfare count day of the month from 1
+
+[vars]
+BOT_TOKEN = ""  # We'll set this in Cloudflare dashboard
+USER_CHAT_ID = ""  # We'll set this in Cloudflare dashboard
