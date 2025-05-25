@@ -1,60 +1,133 @@
-# sailurbot
+# sailurbot ⛵
 
-This is tribute to the https://x.com/FridaySailer account, created by https://x.com/silly2tilly.
-Since he stops to posting the weekly reminder messages, I decided to make my own for myself.
-
----
-
-## How to Deploy Your Own Worker
-
-1. **Fork or Clone this Repository**
-   ```sh
-   git clone https://github.com/vadostuta/sailurbot.git
-   cd sailurbot
-   ```
-
-2. **Install Wrangler (Cloudflare's CLI)**
-   ```sh
-   npm install -g wrangler
-   ```
-
-3. **Configure Your Worker**
-   - Edit `wrangler.toml`:
-     - Change the `name` field to your desired Worker name (e.g., `reminderbot`).
-   - Set your environment variables (such as `BOT_TOKEN`, `USER_CHAT_ID`, etc.) using the Cloudflare dashboard or with Wrangler secrets:
-     ```sh
-     wrangler secret put BOT_TOKEN
-     wrangler secret put USER_CHAT_ID
-     # Add any other required secrets
-     ```
-
-4. **Deploy to Cloudflare**
-   ```sh
-   wrangler deploy
-   ```
-
-5. **Test Your Worker**
-   - Visit:
-     ```
-     https://[worker-name].[your-subdomain].workers.dev/test
-     ```
-
-   - **Example:**  
-     If your Worker name is `reminderbot` and your subdomain is `myuser`, your test URL will be:  
-     ```
-     https://reminderbot.myuser.workers.dev/test
-     ```
+This is a tribute to the [@FridaySailer](https://x.com/FridaySailer) account, created by [@silly2tilly](https://x.com/silly2tilly).
+Since they stopped posting the weekly sailing reminder messages, I decided to create my own automated version using a Telegram bot and Cloudflare Workers.
 
 ---
 
-## Security Note
+## ✨ What This Bot Does
 
-- **Never share your real bot token, chat ID, or any other sensitive data in public repositories or documentation.**
-- Always use environment variables or Cloudflare secrets to keep your credentials safe.
+* Lets users subscribe via `/start` and unsubscribe via `/stop`
+* Automatically sends a sailing video to all subscribers every Friday at 17:00
+* Stores subscriber info using Cloudflare KV
+* Includes a secure `/run-cron` test endpoint and `/test` route
 
 ---
 
-## Resources
+## 🚀 How to Deploy Your Own Version
 
-- [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/)
-- [Wrangler CLI Documentation](https://developers.cloudflare.com/workers/wrangler/)
+### 1. **Fork or Clone This Repository**
+
+```bash
+git clone https://github.com/vadostuta/sailurbot.git
+cd sailurbot
+```
+
+---
+
+### 2. **Install Wrangler (Cloudflare CLI)**
+
+```bash
+npm install -g wrangler
+```
+
+---
+
+### 3. **Create Cloudflare KV Namespace**
+
+In your Cloudflare dashboard:
+
+* Go to Workers → KV → Create Namespace (e.g., `users_kv`)
+* Copy the **KV ID** and paste it into `wrangler.toml` under `[[kv_namespaces]]`
+
+```toml
+[[kv_namespaces]]
+binding = "USERS_KV"
+id = "YOUR_KV_NAMESPACE_ID"
+```
+
+---
+
+### 4. **Configure Your Worker**
+
+Edit `wrangler.toml`:
+
+```toml
+name = "sailer"
+main = "index.js"
+compatibility_date = "2024-01-01"
+
+[triggers]
+crons = ["0 17 * * 6"]  # Every Friday at 17:00 (Cloudflare format)
+
+[vars]
+CRON_KEY = "your-secret-key-here"  # Used to protect the /run-cron route
+
+[[kv_namespaces]]
+binding = "USERS_KV"
+id = "your-kv-id-here"
+```
+
+---
+
+### 5. **Set Secrets (Do NOT hardcode them)**
+
+```bash
+wrangler secret put BOT_TOKEN
+```
+
+You’ll be prompted to paste your Telegram bot token.
+
+---
+
+### 6. **Deploy the Worker**
+
+```bash
+wrangler deploy
+```
+
+After deployment, note the URL, e.g.
+`https://sailer.your-subdomain.workers.dev`
+
+---
+
+### 7. **Set Telegram Webhook**
+
+In your browser or using `curl`, run:
+
+```bash
+https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook?url=https://sailer.your-subdomain.workers.dev/webhook
+```
+
+Replace `<YOUR_BOT_TOKEN>` and the Worker URL.
+
+---
+
+## 💡 Test Routes
+
+* `GET /test` → confirms the bot is deployed
+* `GET /run-cron?key=your-secret-key` → manually trigger video push (protected)
+
+---
+
+## 🔐 Security Notes
+
+* Never share your **bot token**, **chat ID**, or **secret keys** publicly
+* All sensitive data is stored via `wrangler secret` or Cloudflare dashboard
+* The `/run-cron` route is protected via a secret `CRON_KEY`
+
+---
+
+## 📌 Useful Links
+
+* [Cloudflare Workers Docs](https://developers.cloudflare.com/workers/)
+* [Wrangler CLI Docs](https://developers.cloudflare.com/workers/wrangler/)
+* [Telegram Bot API Docs](https://core.telegram.org/bots/api)
+* [Create a Telegram Bot](https://core.telegram.org/bots#3-how-do-i-create-a-bot)
+
+---
+
+## 👏 Credits
+
+Inspired by [@FridaySailer](https://x.com/FridaySailer)
+****

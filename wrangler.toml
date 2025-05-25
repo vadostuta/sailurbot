@@ -7,4 +7,8 @@ crons = ["0 17 * * 6"]  # Every Friday at 5 PM; 6 because cloudfare count day of
 
 [vars]
 BOT_TOKEN = ""  # We'll set this in Cloudflare dashboard
-USER_CHAT_ID = ""  # We'll set this in Cloudflare dashboard
+CRON_KEY = "my-secret-key-123" # Use a strong, random string for route protection
+
+[[kv_namespaces]]
+binding = "USERS_KV"
+id = "624ce8a88ad844e89a1f59a4e5a0ed89" # Replace with actual ID from Cloudflare dashboard
